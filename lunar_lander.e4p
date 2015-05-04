@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Project SYSTEM "Project-5.1.dtd">
+<!-- eric project file for project lunar_lander -->
+<!-- Saved: 2015-05-03, 18:07:35 -->
+<!-- Copyright (C) 2015 Matthew Jones, matt.phil.jones@gmail.com -->
+<Project version="5.1">
+  <Language>en_US</Language>
+  <Hash>78b3667302990d5c69aaa40e2d1e413393640802</Hash>
+  <ProgLanguage mixed="0">Python2</ProgLanguage>
+  <ProjectType>PyQt5</ProjectType>
+  <Description>A game based on lunar lander</Description>
+  <Version>0.1</Version>
+  <Author>Matthew Jones</Author>
+  <Email>matt.phil.jones@gmail.com</Email>
+  <Eol index="-1"/>
+  <Sources>
+    <Source>src/__init__.py</Source>
+    <Source>src/model/__init__.py</Source>
+    <Source>src/lunar_lander.py</Source>
+    <Source>src/model/lander.py</Source>
+  </Sources>
+  <Forms/>
+  <Translations/>
+  <Resources/>
+  <Interfaces/>
+  <Others/>
+  <Vcs>
+    <VcsType>None</VcsType>
+  </Vcs>
+  <FiletypeAssociations>
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES"/>
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.py" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.py2" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw2" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.qm" type="TRANSLATIONS"/>
+    <FiletypeAssociation pattern="*.qrc" type="RESOURCES"/>
+    <FiletypeAssociation pattern="*.ts" type="TRANSLATIONS"/>
+    <FiletypeAssociation pattern="*.ui" type="FORMS"/>
+  </FiletypeAssociations>
+</Project>

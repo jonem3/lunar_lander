@@ -8,33 +8,35 @@ thrust = 3.0/fps
 
 class Lander(Sprite):
     
+    max_fuel = 1000
+    
     def __init__(self):
         # Call the parent class (Sprite) constructor
         super(Lander, self).__init__()
-        self.rocket_fire = pygame.image.load("../images/fire.png").convert()
         self.rocket = pygame.image.load("../images/rocket.png").convert()
-        
+        self.rect = None
         self.height = 600
         self.horiz = 395
         self.delta_vert = 0
         self.delta_horiz = 0 
-        self.fuel = 10000
+        self.fuel = Lander.max_fuel
         #print (str(thrust))
         #print (str(gravity))
         
     def is_fuel_remaining(self):
         return self.fuel > 0
     
-    def calculate_vertical_speed(self, thrusting):
+    def calculate_vertical_speed(self, thrusting, landed):
+        old_height = self.height
         if thrusting and self.is_fuel_remaining():
             self.delta_vert += thrust
             self.fuel -= 1
             #print ("thrusting")
         self.delta_vert += gravity
         self.height += self.delta_vert
-        if self.height < 32:
-            self.height = 32
-            self.delta_vert = 0.0
+        if landed:
+            self.height = old_height
+            return self.delta_vert > -1
         #print("height" + str(self.height))
         #print("delta vert" + str(self.delta_vert))
         
@@ -52,8 +54,10 @@ class Lander(Sprite):
         y = 600 - self.height
         self.image = pygame.Surface([24, 32]).convert()
         self.image.blit (self.rocket, (0, 0), (0, 0, 24, 32))
+        self.image.set_colorkey((255, 255, 255))        
         self.rect = self.image.get_rect()
         self.rect.x = self.horiz
         self.rect.y = y
+        self.mask = pygame.mask.from_surface(self.image)
         #self.image = pygame.Surface([SuperSprite.SPRITE_DIMENSION, SuperSprite.SPRITE_DIMENSION]).convert()
         #self.image.blit(self.sprite_sheet, (0, 0), (left_side, 0, SuperSprite.SPRITE_DIMENSION, SuperSprite.SPRITE_DIMENSION))

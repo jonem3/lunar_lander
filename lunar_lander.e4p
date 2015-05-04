@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project lunar_lander -->
-<!-- Saved: 2015-05-03, 18:07:35 -->
+<!-- Saved: 2015-05-04, 20:22:51 -->
 <!-- Copyright (C) 2015 Matthew Jones, matt.phil.jones@gmail.com -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -18,6 +18,9 @@
     <Source>src/model/__init__.py</Source>
     <Source>src/lunar_lander.py</Source>
     <Source>src/model/lander.py</Source>
+    <Source>src/model/burn.py</Source>
+    <Source>src/model/rectangle.py</Source>
+    <Source>src/model/planet.py</Source>
   </Sources>
   <Forms/>
   <Translations/>

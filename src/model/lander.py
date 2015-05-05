@@ -3,7 +3,7 @@ from pygame.sprite import Sprite
 import pygame
 
 fps = 200.0
-gravity = -2.0/fps
+gravity = -2.5/fps
 thrust = 3.0/fps
 
 class Lander(Sprite):
@@ -36,7 +36,9 @@ class Lander(Sprite):
         self.height += self.delta_vert
         if landed:
             self.height = old_height
-            return self.delta_vert > -1
+            landed_ok = self.delta_vert > -1
+            self.delta_vert = 0
+            return landed_ok
         #print("height" + str(self.height))
         #print("delta vert" + str(self.delta_vert))
         

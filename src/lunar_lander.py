@@ -11,16 +11,46 @@ import time
 background_colour = (0, 0, 0)
 blue = (0, 0, 255)
 white = (255, 255, 255)
+font = None
+message = None
 
-def main():
+def display_message(screen):    
+    global message
+    global font
+    if message is not None:
+        score_text = font.render( message , True, white)
+        screen.blit(score_text, [130, 10 ])
+        
+def play_sound(sound_file,  looping = False):
+    play_value = -1 if looping else 0
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load(sound_file)
+    pygame.mixer.music.play(play_value)
+
+def crashed_message():
+    global message
+    message = "Oh no! You Crashed.  No banana."
+    print ("crashed")
+    play_sound('../sounds/explosion.mp3')
     
+def landed_message():    
+    global message
+    message = "Well done! You've landed! Jebadiah would be proud!"
+    print ("landed")
+    play_sound('../sounds/ksp.mp3')
+    
+def main():
+    global font
+    global message
     pygame.init()
     pygame.display.set_caption("Lunar Lander Re-Created By Matthew Jones And Philip Jones")
     screen = pygame.display.set_mode((800,600))
     
+    font = pygame.font.SysFont('Calibri', 25, True, False)
+    
     lander = Lander()
     lander_group = Group()
-    lander_group.add (lander)
+    lander_group.add(lander)
     
     burn = Burn(lander)
     burn_group = Group()
@@ -43,6 +73,8 @@ def main():
     flicker = True
     music = False
     first_frame = True
+    
+    landed_ok = None
     while not done:
         thrust = False
         left = False
@@ -51,12 +83,13 @@ def main():
         keys=pygame.key.get_pressed()
         if keys[K_ESCAPE]:
             done = True
-        if keys[K_SPACE] or keys[K_UP]:
-            thrust = True
-        if keys[K_LEFT]:
-            left = True
-        if keys[K_RIGHT]:
-            right = True
+        if landed_ok is None:
+            if keys[K_SPACE] or keys[K_UP]:
+                thrust = True
+            if keys[K_LEFT]:
+                left = True
+            if keys[K_RIGHT]:
+                right = True
         
         landed = False
         if first_frame:
@@ -66,26 +99,31 @@ def main():
             landed = lander.mask.overlap(planet.mask, (offset_x, offset_y))  != None               
             
         status = lander.calculate_vertical_speed(thrust, landed)
-        if landed:
-            if status:
-                print ("landed")
+        if landed and landed_ok is None:
+            landed_ok = status
+            if landed_ok:
+                landed_message()
             else:
-                print ("crashed")
-            
+                crashed_message()
+                
+        if not landed and lander.height < 200:
+            if lander.delta_vert < -2:
+                message = "Almost there!  TOO FAST!"
+            else:
+                message = "Almost there! Slow down for a soft landing"           
         lander.calc_horizontal(left, right)
         screen.fill(background_colour)
         lander.render()
         lander_group.draw(screen)
-        if thrust and lander.is_fuel_remaining():
+        if not landed and thrust and lander.is_fuel_remaining():
             flicker = not flicker
             image_number = 1 if flicker else 0
             burn.render(image_number)
             burn_group.draw(screen)
             if not music:
-                pygame.mixer.music.load('../sounds/rocket_sound.mp3')
-                pygame.mixer.music.play(-1)
+                play_sound('../sounds/rocket_sound.mp3',  True)
                 music = True
-        elif music:
+        elif music and not landed:
             music = False
             pygame.mixer.music.stop()
     
@@ -99,8 +137,10 @@ def main():
         planet.render()
         planet_group.draw(screen)
         
+        display_message(screen)
+        
         pygame.display.update()
-        time.sleep(0.018)
+        time.sleep(0.015)
         
         
 if __name__ == '__main__':

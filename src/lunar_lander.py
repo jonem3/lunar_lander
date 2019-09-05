@@ -1,4 +1,5 @@
 #!python
+import tkinter
 import pygame
 from pygame.locals import *
 from model.lander import Lander
@@ -29,21 +30,19 @@ def play_sound(sound_file,  looping = False):
 
 def crashed_message():
     global message
-    message = "Oh no! You Crashed.  No banana."
+    message = "Oh no! You Crashed."
     print ("crashed")
     play_sound('../sounds/explosion.mp3')
     
 def landed_message():    
     global message
-    message = "Well done! You've landed! Jebadiah would be proud!"
-    print ("landed")
-    play_sound('../sounds/ksp.mp3')
+    message = "Well done! You've landed!"
     
 def main():
     global font
     global message
     pygame.init()
-    pygame.display.set_caption("Lunar Lander Re-Created By Matthew Jones And Philip Jones")
+    pygame.display.set_caption("Lunar Lander Game")
     screen = pygame.display.set_mode((800,600))
     
     font = pygame.font.SysFont('Calibri', 25, True, False)
@@ -141,6 +140,9 @@ def main():
         
         pygame.display.update()
         time.sleep(0.015)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
         
         
 if __name__ == '__main__':

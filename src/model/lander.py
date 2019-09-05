@@ -2,9 +2,10 @@
 from pygame.sprite import Sprite
 import pygame
 
-fps = 200.0
+fps = 60.0
 gravity = -2.5/fps
-thrust = 3.0/fps
+inertial_dampners = 1.5/fps
+thrust = 6.0/fps
 
 class Lander(Sprite):
     
@@ -13,7 +14,7 @@ class Lander(Sprite):
     def __init__(self):
         # Call the parent class (Sprite) constructor
         super(Lander, self).__init__()
-        self.rocket = pygame.image.load("../images/rocket.png").convert()
+        self.rocket = pygame.image.load("../images/rocket_new.png").convert()
         self.rect = None
         self.height = 600
         self.horiz = 395
@@ -50,6 +51,12 @@ class Lander(Sprite):
             self.delta_horiz += thrust
             self.fuel -= 1
         self.horiz += self.delta_horiz
+        if self.delta_horiz > 0:
+            self.delta_horiz -= inertial_dampners
+        elif self.delta_horiz < 0:
+            self.delta_horiz += inertial_dampners
+        else:
+            pass
     
     def render(self):
         

@@ -5,7 +5,7 @@ import pygame
 fps = 60.0
 gravity = -2.5/fps
 inertial_dampners = 1.5/fps
-thrust = 6.0/fps
+thrust = 3.0/fps
 
 class Lander(Sprite):
     

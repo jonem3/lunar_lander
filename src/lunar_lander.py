@@ -6,10 +6,12 @@ from model.lander import Lander
 from model.burn import Burn
 from model.planet import Planet
 from model.rectangle import Rectangle
+#from model.rcs import RCS
 from pygame.sprite import Group
 import time
 
 background_colour = (0, 0, 0)
+
 blue = (0, 0, 255)
 white = (255, 255, 255)
 font = None
@@ -31,7 +33,6 @@ def play_sound(sound_file,  looping = False):
 def crashed_message():
     global message
     message = "Oh no! You Crashed."
-    print ("crashed")
     play_sound('../sounds/explosion.mp3')
     
 def landed_message():    
@@ -74,21 +75,28 @@ def main():
     first_frame = True
     
     landed_ok = None
+    #CHANGE THE FILE TYPE BELOW TO PNG TO SEE TRASHY STARS
+    background_image = pygame.image.load(r"C:\Users\mattp\Documents\Projects\lunar_lander\images\space.jpg").convert()
     while not done:
+        #DISABLE THE BELOW SETTINGS FOR THE BACKGROUND TO CHANGE BACK
+        #TO PURE COLOUR
+        screen.blit(background_image, [0, 0])
         thrust = False
         left = False
         right = False
+        left_rcs = False
+        right_rcs = False
         pygame.event.pump()
         keys=pygame.key.get_pressed()
-        if keys[K_ESCAPE]:
-            done = True
         if landed_ok is None:
             if keys[K_SPACE] or keys[K_UP]:
                 thrust = True
             if keys[K_LEFT]:
                 left = True
+                rcs = True
             if keys[K_RIGHT]:
                 right = True
+                rcs = True
         
         landed = False
         if first_frame:
@@ -109,9 +117,10 @@ def main():
             if lander.delta_vert < -2:
                 message = "Almost there!  TOO FAST!"
             else:
-                message = "Almost there! Slow down for a soft landing"           
+                message = "Almost there! Slow down for a soft landing"
         lander.calc_horizontal(left, right)
-        screen.fill(background_colour)
+        #ENABLE BELOW SETTING FOR THE SILLY STARS TO DISAPPEAR
+        #screen.fill(background_colour)
         lander.render()
         lander_group.draw(screen)
         if not landed and thrust and lander.is_fuel_remaining():
@@ -122,10 +131,14 @@ def main():
             if not music:
                 play_sound('../sounds/rocket_sound.mp3',  True)
                 music = True
+        '''
+        if not landed and right_rcs and lander.is_fuel_remaining():
+            rcs.render_right(image_number)
+            
         elif music and not landed:
             music = False
             pygame.mixer.music.stop()
-    
+        '''
         #draw fuel bar :)
         percent_fuel = float(lander.fuel) / float(Lander.max_fuel) * 100.0
         fuel_bar_back.render(10, 10, 104, 12)

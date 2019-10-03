@@ -8,6 +8,7 @@ from model.planet import Planet
 from model.rectangle import Rectangle
 #from model.rcs import RCS
 from pygame.sprite import Group
+import numpy
 import time
 
 background_colour = (0, 0, 0)
@@ -118,6 +119,9 @@ def main():
                 message = "Almost there!  TOO FAST!"
             else:
                 message = "Almost there! Slow down for a soft landing"
+        #else:
+            #distance = (lander.height)/10
+            #message = ("DISTANCE TO GROUND = " + str(distance) + "M")
         lander.calc_horizontal(left, right)
         #ENABLE BELOW SETTING FOR THE SILLY STARS TO DISAPPEAR
         #screen.fill(background_colour)

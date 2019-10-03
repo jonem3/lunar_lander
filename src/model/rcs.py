@@ -1,3 +1,6 @@
+from pygame.sprite import Sprite
+import pygame
+
 class RCS(Sprite):
     def __init__(self, lander):
         super(RCS, self).__init__()
@@ -19,3 +22,4 @@ class RCS(Sprite):
         self.image.blit(self.rcs, (0,0), (offset, 0, 8, 10))
         self.rect.x = self.lander.rect.x
         self.rect.y = self.lander.rect.y +10
+`¬

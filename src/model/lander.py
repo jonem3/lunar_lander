@@ -16,7 +16,9 @@ class Lander(Sprite):
         # Call the parent class (Sprite) constructor
         super(Lander, self).__init__()
         self.rocket = pygame.image.load("../images/rocket_new.png")#.convert()
-        self.rect = None
+        self.image = self.rocket
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
         self.height = 600
         self.horiz = 395
         self.delta_vert = 0
@@ -29,6 +31,7 @@ class Lander(Sprite):
         return self.fuel > 0
     
     def calculate_vertical_speed(self, thrusting, landed):
+        global old_height
         old_height = self.height
         if thrusting and self.is_fuel_remaining():
             self.delta_vert += thrust
@@ -38,7 +41,7 @@ class Lander(Sprite):
         self.height += self.delta_vert
         if landed:
             self.height = old_height
-            landed_ok = self.delta_vert > -1
+            landed_ok = self.delta_vert > -10
             self.delta_vert = 0
             return landed_ok
         if self.height >= 600:
@@ -46,6 +49,13 @@ class Lander(Sprite):
             self.delta_vert = 0
         #print("height" + str(self.height))
         #print("delta vert" + str(self.delta_vert))
+
+    def check_if_landed_ok(self, landed):
+        if landed:
+            self.height = old_height
+            landed_ok = self.delta_vert > -1
+            self.delta_vert = 0
+            return landed_ok
         
     def calc_horizontal(self, left, right):
         if left and self.is_fuel_remaining():

@@ -7,13 +7,14 @@ class Planet(Sprite):
         # Call the parent class (Sprite) constructor
         super(Planet, self).__init__()
         self.surface = pygame.image.load("../images/surface.png").convert()
-        self.rect = None
-        
+
+        self.image = pygame.Surface([800, 100]).convert()
+        self.rect = self.image.get_rect()
         
     def render(self):
-        self.image = pygame.Surface([800, 100]).convert()
+
         self.image.blit (self.surface, (0, 0), (0, 0, 800, 100))
-        self.image.set_colorkey((255, 255, 255))        
+        self.image.set_colorkey((255, 255, 255))
         self.rect = self.image.get_rect()
         self.rect.x = 0
         self.rect.y = 500

@@ -88,5 +88,6 @@ class Lander(Sprite):
         self.rect.x = self.horiz
         self.rect.y = y
         self.mask = pygame.mask.from_surface(self.image)
+
         #self.image = pygame.Surface([SuperSprite.SPRITE_DIMENSION, SuperSprite.SPRITE_DIMENSION]).convert()
         #self.image.blit(self.sprite_sheet, (0, 0), (left_side, 0, SuperSprite.SPRITE_DIMENSION, SuperSprite.SPRITE_DIMENSION))

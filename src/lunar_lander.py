@@ -15,12 +15,14 @@ import numpy
 import time
 import math
 import neat
+pygame.font.init()
 
 background_colour = (0, 0, 0)
 
 blue = (0, 0, 255)
 white = (255, 255, 255)
 font = None
+STAT_FONT = pygame.font.SysFont("arial", 25)
 message = None
 gen = 0
 
@@ -90,7 +92,7 @@ def rect_distance(rect1, rect2):
 #Below has been changed:
 
 
-def draw_window(win, landers, planet, score, gen, planet_group, lander_group):
+def draw_window(win, landers, planet, score, gen, planet_group, lander_group, landedwell):
     if gen == 0:
         gen = 1
 
@@ -99,6 +101,12 @@ def draw_window(win, landers, planet, score, gen, planet_group, lander_group):
     planet.render()
     lander_group.draw(win)
     planet_group.draw(win)
+    score_label = STAT_FONT.render("Gens: " + str(gen-1), 1, white)
+    win.blit(score_label, (10, 10))
+    score_label = STAT_FONT.render("Alive: " + str(len(landers)), 1, white)
+    win.blit(score_label, (10, 60))
+    score_label = STAT_FONT.render("Landed Ok: "+ str(landedwell), 1, white)
+    win.blit(score_label, (10, 110))
 
     pygame.display.update()
 
@@ -129,7 +137,7 @@ def eval_genomes(genomes, config):
         ge.append(genome)
 
     score = 0
-
+    landedwell = 0
     clock = pygame.time.Clock()
 
     running = True
@@ -188,7 +196,7 @@ def eval_genomes(genomes, config):
                 lander.calc_horizontal(left, right)
             else:
                 firstish_frame = False
-            if landed[x] and landed_ok[x] is None:
+            if landed[x] and landed_ok[x] is not True:
                 #status = lander.check_if_landed_ok(landed[x])
                 landed_ok[x] = status
             if landed_ok[x]:
@@ -206,7 +214,10 @@ def eval_genomes(genomes, config):
             if not landed[x] and not lander.is_fuel_remaining():
                 ge[x].fitness -= 1
 
-        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group)
+            if landed_ok[x]:
+                landedwell += 1
+
+        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group, landedwell)
 
 
 def run(config_file):

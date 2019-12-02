@@ -92,7 +92,7 @@ def rect_distance(rect1, rect2):
 #Below has been changed:
 
 
-def draw_window(win, landers, planet, score, gen, planet_group, lander_group, landedwell):
+def draw_window(win, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness):
     if gen == 0:
         gen = 1
 
@@ -101,12 +101,14 @@ def draw_window(win, landers, planet, score, gen, planet_group, lander_group, la
     planet.render()
     lander_group.draw(win)
     planet_group.draw(win)
-    score_label = STAT_FONT.render("Gens: " + str(gen-1), 1, white)
+    score_label = STAT_FONT.render("Generations: " + str(gen-1), 1, white)
     win.blit(score_label, (10, 10))
-    score_label = STAT_FONT.render("Alive: " + str(len(landers)), 1, white)
+    score_label = STAT_FONT.render("No. Alive: " + str(len(landers)), 1, white)
     win.blit(score_label, (10, 60))
-    score_label = STAT_FONT.render("Landed Ok: "+ str(landedwell), 1, white)
+    score_label = STAT_FONT.render("Successful landing?: "+ str(landedwell), 1, white)
     win.blit(score_label, (10, 110))
+    score_label = STAT_FONT.render("Best Ship Score: " + str(top_fitness), 1, white)
+    win.blit(score_label, (10, 160))
 
     pygame.display.update()
 
@@ -154,7 +156,10 @@ def eval_genomes(genomes, config):
                 quit()
                 break
         win.fill(background_colour)
+        top_fitness = 0
         for x, lander in enumerate(landers):
+            if ge[x].fitness > top_fitness:
+                top_fitness = ge[x].fitness
             print(x)
             print("Landed Ok?: " + str(landed_ok[x]))
             print("Fitness: "+ str(ge[x].fitness))
@@ -172,9 +177,12 @@ def eval_genomes(genomes, config):
                 #lander.rect = lander.image.get_rect()
                 #lander.mask = pygame.mask.from_surface(lander.image)
 
-                offset_x = planet.rect.left - lander.rect.left
-                offset_y = planet.rect.top - lander.rect.top
-                landed[x] = lander.mask.overlap(planet.mask, (offset_x, offset_y)) is not None
+                #offset_x = planet.rect.left - lander.rect.left
+                #offset_y = planet.rect.top - lander.rect.top
+                #landed[x] = lander.mask.overlap(planet.mask, (offset_x, offset_y)) is not None
+                offset_x, offset_y = (planet.rect.left - lander.rect.left), (planet.rect.top - lander.rect.top)
+                landed[x] = lander.mask.overlap(planet.mask, (offset_x, offset_y)) != None
+                print("Is this landed?:", landed[x])
                 height = rect_distance(planet.rect, lander.rect)
 
             print(landed[x])
@@ -183,8 +191,8 @@ def eval_genomes(genomes, config):
 
                 if output[0] > 0.5 and landed_ok[x] is None:
                     thrust = True
-                if not landed[x]:
-                    status = lander.calculate_vertical_speed(thrust, landed[x])
+                #if not landed[x]:
+                    #status = lander.calculate_vertical_speed(thrust, landed[x])
 
                 output = nets[landers.index(lander)].activate((lander.horiz, lander.is_fuel_remaining(), offset_x, height, abs(lander.delta_horiz)))
                 if output[0] > 0.5 and landed_ok[x] is None:
@@ -194,30 +202,43 @@ def eval_genomes(genomes, config):
                     right = True
                     rcs = True
                 lander.calc_horizontal(left, right)
+                status = lander.calculate_vertical_speed(thrust, landed[x])
             else:
                 firstish_frame = False
-            if landed[x] and landed_ok[x] is not True:
-                #status = lander.check_if_landed_ok(landed[x])
-                landed_ok[x] = status
-            if landed_ok[x]:
-                ge[x].fitness += 10
-                win.fill(0, 255, 0)
-            if landed[x] and not landed_ok[x]:
-                ge[landers.index(lander)].fitness -= 1
-                nets.pop(landers.index(lander))
-                ge.pop(landers.index(lander))
-                landers.pop(landers.index(lander))
-                lander_group.remove(lander)
             if not landed[x] and lander.height < 200:
                 if lander.delta_vert < -2:
                     ge[x].fitness -= 1
             if not landed[x] and not lander.is_fuel_remaining():
                 ge[x].fitness -= 1
-
+            if landed[x] and landed_ok[x] is not True:
+                print("Checking land quality")
+                landed_ok[x] = status
+                print(landed_ok[x])
             if landed_ok[x]:
-                landedwell += 1
+                ge[x].fitness += 10
+                #win.fill(0, 255, 0)
+            if landed[x] and not landed_ok[x]:
+                ge[landers.index(lander)].fitness -= 1
+                nets.pop(landers.index(lander))
+                ge.pop(landers.index(lander))
+                del landed_ok[x]
+                # landed_ok.remove(x)
+                landers.pop(landers.index(lander))
 
-        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group, landedwell)
+                lander_group.remove(lander)
+            elif landed_ok[x]:
+                landedwell += 1
+                ge[landers.index(lander)].fitness -= 1
+                nets.pop(landers.index(lander))
+                ge.pop(landers.index(lander))
+                del landed_ok[x]
+                landers.pop(landers.index(lander))
+
+
+
+
+
+        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness)
 
 
 def run(config_file):

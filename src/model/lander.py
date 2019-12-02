@@ -1,6 +1,7 @@
 #! python
 from pygame.sprite import Sprite
 import pygame
+import random
 black = (0,0,0)
 fps = 60.0
 gravity = -2.5/fps
@@ -14,8 +15,16 @@ class Lander(Sprite):
     
     def __init__(self):
         # Call the parent class (Sprite) constructor
+        rocket1 = "../images/rocket_new.png"
+        rocket2 = "../images/rocket.png"
+        rocket = random.randint(1, 2)
+        imagerocket = ""
+        if rocket == 1:
+            imagerocket = rocket1
+        else:
+            imagerocket = rocket2
         super(Lander, self).__init__()
-        self.rocket = pygame.image.load("../images/rocket_new.png")#.convert()
+        self.rocket = pygame.image.load(imagerocket)#.convert()
         self.image = self.rocket
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
@@ -41,7 +50,7 @@ class Lander(Sprite):
         self.height += self.delta_vert
         if landed:
             self.height = old_height
-            landed_ok = self.delta_vert > -10
+            landed_ok = self.delta_vert > -1
             self.delta_vert = 0
             return landed_ok
         if self.height >= 600:

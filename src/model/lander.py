@@ -92,7 +92,7 @@ class Lander(Sprite):
         self.image = pygame.Surface([24, 32]).convert()
         self.image.set_colorkey(black)
         self.image.blit (self.rocket, (0, 0), (0, 0, 24, 32))
-        self.image.set_colorkey((255, 255, 255))        
+        #self.image.set_colorkey((255, 255, 255))
         self.rect = self.image.get_rect()
         self.rect.x = self.horiz
         self.rect.y = y

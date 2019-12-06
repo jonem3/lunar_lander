@@ -15,6 +15,7 @@ import numpy
 import time
 import math
 import neat
+import visualize
 pygame.font.init()
 
 background_colour = (0, 0, 0)
@@ -63,51 +64,57 @@ def rect_distance(rect1, rect2):
     top = y2b < y1
     bottom = y1b < y2
     if bottom and left:
-        print('bottom left')
+        # print('bottom left')
         return math.hypot(x2b-x1, y2-y1b)
     elif left and top:
-        print('top left')
+        # print('top left')
         return math.hypot(x2b-x1, y2b-y1)
     elif top and right:
-        print('top right')
+        # print('top right')
         return math.hypot(x2-x1b, y2b-y1)
     elif right and bottom:
-        print('bottom right')
+        # print('bottom right')
         return math.hypot(x2-x1b, y2-y1b)
     elif left:
-        print('left')
+        # print('left')
         return x1 - x2b
     elif right:
-        print('right')
+        # print('right')
         return x2 - x1b
     elif top:
-        print('top')
+        # print('top')
         return y1 - y2b
     elif bottom:
-        print('bottom')
+        # print('bottom')
         return y2 - y1b
     else:  # rectangles intersect
-        print('intersection')
+        # print('intersection')
         return 0.
 #Below has been changed:
 
 
-def draw_window(win, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness):
+def draw_window(win, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness, burn_group, fuel_bar_back, fuel_bar_front, percent_fuel):
     if gen == 0:
         gen = 1
 
     for lander in landers:
         lander.render()
+    #for burner in burners:
+        #burner.render(image_number)
     planet.render()
     lander_group.draw(win)
     planet_group.draw(win)
+    burn_group.draw(win)
+    fuel_bar_back.draw(win)
+    fuel_bar_front.draw(win)
     score_label = STAT_FONT.render("Generations: " + str(gen-1), 1, white)
     win.blit(score_label, (10, 10))
     score_label = STAT_FONT.render("No. Alive: " + str(len(landers)), 1, white)
     win.blit(score_label, (10, 60))
-    score_label = STAT_FONT.render("Successful landing?: "+ str(landedwell), 1, white)
+    score_label = STAT_FONT.render("Land Well?: "+ str(landedwell), 1, white)
     win.blit(score_label, (10, 110))
-    score_label = STAT_FONT.render("Best Ship Score: " + str(top_fitness), 1, white)
+    top_fitness_rounded = "%.2f" % top_fitness
+    score_label = STAT_FONT.render("Max Score: " + str(top_fitness_rounded), 1, white)
     win.blit(score_label, (10, 160))
 
     pygame.display.update()
@@ -120,13 +127,16 @@ def eval_genomes(genomes, config):
     gen += 1
     nets = []
     landers = []
+    burners = []
     ge = []
     planet = Planet()
     planet_group = Group()
     planet_group.add(planet)
     lander_group = Group()
+
     landed_ok = []
     landed = []
+    flicker = []
     for genome_id, genome in genomes:
         genome.fitness = 0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -136,6 +146,8 @@ def eval_genomes(genomes, config):
         landers.append(lander)
         landed_ok.append(None)
         landed.append(False)
+
+        flicker.append(True)
         ge.append(genome)
 
     score = 0
@@ -148,6 +160,12 @@ def eval_genomes(genomes, config):
     planet.mask = pygame.mask.from_surface(planet.image)
     planet.rect = planet.image.get_rect()
     while running and len(landers) > 0:
+        burn_group = Group()
+        fuel_bar_front_group = Group()
+        fuel_bar_back_group = Group()
+        burners = []
+        #print(burn_group)
+        #print(len(burners))
         clock.tick(30)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -158,12 +176,17 @@ def eval_genomes(genomes, config):
         win.fill(background_colour)
         top_fitness = 0
         for x, lander in enumerate(landers):
+            #burner = burners[x]
+            fuel_bar_front = Rectangle(blue)
+            fuel_bar_front_group.add(fuel_bar_front)
+            fuel_bar_back = Rectangle(white)
+            fuel_bar_back_group.add(fuel_bar_back)
             if ge[x].fitness > top_fitness:
                 top_fitness = ge[x].fitness
-            print(x)
-            print("Landed Ok?: " + str(landed_ok[x]))
-            print("Fitness: "+ str(ge[x].fitness))
-            print("Delta V = "+ str(lander.delta_vert))
+            # print(x)
+            # print("Landed Ok?: " + str(landed_ok[x]))
+            # print("Fitness: "+ str(ge[x].fitness))
+            # print("Delta V = "+ str(lander.delta_vert))
             ge[x].fitness += 0.1
             thrust = False
             left = False
@@ -182,19 +205,19 @@ def eval_genomes(genomes, config):
                 #landed[x] = lander.mask.overlap(planet.mask, (offset_x, offset_y)) is not None
                 offset_x, offset_y = (planet.rect.left - lander.rect.left), (planet.rect.top - lander.rect.top)
                 landed[x] = lander.mask.overlap(planet.mask, (offset_x, offset_y)) != None
-                print("Is this landed?:", landed[x])
+                # print("Is this landed?:", landed[x])
                 height = rect_distance(planet.rect, lander.rect)
 
-            print(landed[x])
+            # print(landed[x])
             if landed_ok[x] is None and not firstish_frame:
-                output = nets[landers.index(lander)].activate((lander.height, lander.is_fuel_remaining(), offset_y, height, abs(lander.delta_vert)))
+                output = nets[landers.index(lander)].activate((lander.height, lander.fuel, offset_y, height, abs(lander.delta_vert)))
 
                 if output[0] > 0.5 and landed_ok[x] is None:
                     thrust = True
                 #if not landed[x]:
                     #status = lander.calculate_vertical_speed(thrust, landed[x])
 
-                output = nets[landers.index(lander)].activate((lander.horiz, lander.is_fuel_remaining(), offset_x, height, abs(lander.delta_horiz)))
+                output = nets[landers.index(lander)].activate((lander.horiz, lander.fuel, offset_x, height, abs(lander.delta_horiz)))
                 if output[0] > 0.5 and landed_ok[x] is None:
                     left = True
                     rcs = True
@@ -208,37 +231,63 @@ def eval_genomes(genomes, config):
             if not landed[x] and lander.height < 200:
                 if lander.delta_vert < -2:
                     ge[x].fitness -= 1
+
             if not landed[x] and not lander.is_fuel_remaining():
                 ge[x].fitness -= 1
             if landed[x] and landed_ok[x] is not True:
-                print("Checking land quality")
+                # print("Checking land quality")
                 landed_ok[x] = status
-                print(landed_ok[x])
+                # print(landed_ok[x])
             if landed_ok[x]:
                 ge[x].fitness += 10
                 #win.fill(0, 255, 0)
+            if not landed[x] and lander.is_fuel_remaining() and thrust:
+                burner = Burn(lander)
+                burners.append(burner)
+                burn_group.add(burner)
+                flicker[x] = not flicker[x]
+                image_number = 1 if flicker[x] else 0
+                burner.render(image_number)
+                #burn_group.draw(win)
+                #burners.pop(burner)
+            percent_fuel = float(lander.fuel) / float(Lander.max_fuel) * 42
+            if percent_fuel > 0:
+                fuel_bar_back.render((lander.horiz - 10), (600-(lander.height + 14)), 44, 10)
+                fuel_bar_front.render((lander.horiz - 8), (600-(lander.height + 13)), percent_fuel, 8)
+            else:
+                fuel_bar_front.kill()
+                fuel_bar_back.kill()
             if landed[x] and not landed_ok[x]:
-                ge[landers.index(lander)].fitness -= 1
+                ge[landers.index(lander)].fitness -= 5
                 nets.pop(landers.index(lander))
                 ge.pop(landers.index(lander))
                 del landed_ok[x]
                 # landed_ok.remove(x)
+                #burners.pop(landers.index(lander))
+                #del burners[landers.index(lander)]
+                burn_group.remove(burner)
+                #burner.kill()
+                #print (burn_group)
                 landers.pop(landers.index(lander))
-
                 lander_group.remove(lander)
             elif landed_ok[x]:
                 landedwell += 1
-                ge[landers.index(lander)].fitness -= 1
+                ge[landers.index(lander)].fitness += 10
                 nets.pop(landers.index(lander))
                 ge.pop(landers.index(lander))
                 del landed_ok[x]
+
+                #burner.kill()
                 landers.pop(landers.index(lander))
 
+            #burn_group.remove(burner)
 
 
 
 
-        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness)
+        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness, burn_group, fuel_bar_back_group, fuel_bar_front_group,percent_fuel)
+    print("Number that landed: ", landedwell)
+
 
 
 def run(config_file):
@@ -252,7 +301,7 @@ def run(config_file):
     p.add_reporter(stats)
 
     winner = p.run(eval_genomes, 50)
-    print(winner)
+    # print(winner)
 
 
 if __name__ == '__main__':

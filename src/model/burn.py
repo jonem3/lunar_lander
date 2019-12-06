@@ -7,7 +7,11 @@ class Burn(Sprite):
         # Call the parent class (Sprite) constructor
         super(Burn, self).__init__()
         self.rocket_fire = pygame.image.load("../images/fire.png").convert()
+        self.image = pygame.Surface([8, 10]).convert()
+        self.rect = self.image.get_rect()
         self.lander = lander
+        self.rect.x = self.lander.rect.x + 8
+        self.rect.y = self.lander.rect.y + 32
         
     def render(self, image_number):
         self.image = pygame.Surface([8, 10]).convert()

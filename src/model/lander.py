@@ -7,7 +7,7 @@ fps = 60.0
 gravity = -2.5/fps
 inertial_dampners = 1.5/fps
 thrust = 3.0/fps
-
+#landed_ok = False
 
 class Lander(Sprite):
     
@@ -24,7 +24,7 @@ class Lander(Sprite):
         else:
             imagerocket = rocket2
         super(Lander, self).__init__()
-        self.rocket = pygame.image.load(imagerocket)#.convert()
+        self.rocket = pygame.image.load(imagerocket).convert()
         self.image = self.rocket
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
@@ -50,7 +50,11 @@ class Lander(Sprite):
         self.height += self.delta_vert
         if landed:
             self.height = old_height
-            landed_ok = self.delta_vert > -1
+            #landed_ok = self.delta_vert > -1
+            if self.delta_vert > -1 and self.delta_horiz > -1 and self.delta_horiz < 1:
+                landed_ok = True
+            else:
+                landed_ok = False
             self.delta_vert = 0
             return landed_ok
         if self.height >= 600:

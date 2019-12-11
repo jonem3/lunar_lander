@@ -17,7 +17,8 @@ class Burn(Sprite):
         self.image = pygame.Surface([8, 10]).convert()
         offset = image_number * 8
         self.image.blit (self.rocket_fire, (0, 0), (offset, 0, 8, 10))
+        self.image.set_colorkey((0,0,0))
         self.rect = self.image.get_rect()
-        self.rect.x = self.lander.rect.x + 8
-        self.rect.y = self.lander.rect.y + 32
+        self.rect.x = (self.lander.rect.x + 8)
+        self.rect.y = (self.lander.rect.y + 32)
         

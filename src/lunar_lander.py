@@ -24,8 +24,10 @@ blue = (0, 0, 255)
 white = (255, 255, 255)
 font = None
 STAT_FONT = pygame.font.SysFont("arial", 25)
+LANDINGS_FONT = pygame.font.SysFont("arial", 15)
 message = None
 gen = 0
+successful_landings = []
 
 
 def display_message(screen):    
@@ -93,20 +95,23 @@ def rect_distance(rect1, rect2):
 #Below has been changed:
 
 
-def draw_window(win, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness, burn_group, fuel_bar_back, fuel_bar_front, percent_fuel):
+def draw_window(win, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness, burn_group, fuel_bar_back, fuel_bar_front, scoreboardgroup, lowest):
     if gen == 0:
         gen = 1
 
-    for lander in landers:
-        lander.render()
+    #for lander in landers:
+        #lander.render()
+
     #for burner in burners:
         #burner.render(image_number)
     planet.render()
+    burn_group.draw(win)
     lander_group.draw(win)
     planet_group.draw(win)
-    burn_group.draw(win)
+
     fuel_bar_back.draw(win)
     fuel_bar_front.draw(win)
+    scoreboardgroup.draw(win)
     score_label = STAT_FONT.render("Generations: " + str(gen-1), 1, white)
     win.blit(score_label, (10, 10))
     score_label = STAT_FONT.render("No. Alive: " + str(len(landers)), 1, white)
@@ -116,13 +121,18 @@ def draw_window(win, landers, planet, score, gen, planet_group, lander_group, la
     top_fitness_rounded = "%.2f" % top_fitness
     score_label = STAT_FONT.render("Max Score: " + str(top_fitness_rounded), 1, white)
     win.blit(score_label, (10, 160))
+    score_label = STAT_FONT.render("Lowest Score: " + str(lowest), 1, white)
+    win.blit(score_label, (10, 210))
+    for i in range (0, len(successful_landings)):
+        landings_label = LANDINGS_FONT.render("Gen " + str(i) + " : " + str(successful_landings[i]), 1, blue)
+        win.blit(landings_label, (805, (i*15)))
 
     pygame.display.update()
 
 
 def eval_genomes(genomes, config):
     global WIN, gen
-    WIN = pygame.display.set_mode((800, 600))
+    WIN = pygame.display.set_mode((1000, 600))
     win = WIN
     gen += 1
     nets = []
@@ -149,6 +159,8 @@ def eval_genomes(genomes, config):
 
         flicker.append(True)
         ge.append(genome)
+    for i in range(0, len(ge)):
+        ge[i].fitness += 100
 
     score = 0
     landedwell = 0
@@ -159,7 +171,11 @@ def eval_genomes(genomes, config):
     firstish_frame = True
     planet.mask = pygame.mask.from_surface(planet.image)
     planet.rect = planet.image.get_rect()
+    scoreboardgroup = Group()
+    scoreboard = Rectangle(white)
+    scoreboardgroup.add(scoreboard)
     while running and len(landers) > 0:
+        scoreboard.render(800, 0, 200, 600)
         burn_group = Group()
         fuel_bar_front_group = Group()
         fuel_bar_back_group = Group()
@@ -175,6 +191,7 @@ def eval_genomes(genomes, config):
                 break
         win.fill(background_colour)
         top_fitness = 0
+        lowest_fitness = 1000
         for x, lander in enumerate(landers):
             #burner = burners[x]
             fuel_bar_front = Rectangle(blue)
@@ -183,11 +200,13 @@ def eval_genomes(genomes, config):
             fuel_bar_back_group.add(fuel_bar_back)
             if ge[x].fitness > top_fitness:
                 top_fitness = ge[x].fitness
+            elif ge[x].fitness < lowest_fitness:
+                lowest_fitness = ge[x].fitness
             # print(x)
             # print("Landed Ok?: " + str(landed_ok[x]))
             # print("Fitness: "+ str(ge[x].fitness))
             # print("Delta V = "+ str(lander.delta_vert))
-            ge[x].fitness += 0.1
+            #ge[x].fitness += 0.1
             thrust = False
             left = False
             left_rcs = False
@@ -210,18 +229,18 @@ def eval_genomes(genomes, config):
 
             # print(landed[x])
             if landed_ok[x] is None and not firstish_frame:
-                output = nets[landers.index(lander)].activate((lander.height, lander.fuel, offset_y, height, abs(lander.delta_vert)))
+                output = nets[landers.index(lander)].activate((offset_x, lander.horiz, lander.height, lander.fuel, offset_y, height, abs(lander.delta_vert), abs(lander.delta_horiz)))
 
                 if output[0] > 0.5 and landed_ok[x] is None:
                     thrust = True
                 #if not landed[x]:
                     #status = lander.calculate_vertical_speed(thrust, landed[x])
 
-                output = nets[landers.index(lander)].activate((lander.horiz, lander.fuel, offset_x, height, abs(lander.delta_horiz)))
-                if output[0] > 0.5 and landed_ok[x] is None:
+                #output = nets[landers.index(lander)].activate((lander.horiz, lander.fuel, offset_x, height, abs(lander.delta_horiz)))
+                if output[1] > 0.5 and landed_ok[x] is None:
                     left = True
                     rcs = True
-                if output[0] < -0.5 and landed_ok[x] is None:
+                if output[1] < -0.5 and landed_ok[x] is None:
                     right = True
                     rcs = True
                 lander.calc_horizontal(left, right)
@@ -230,17 +249,20 @@ def eval_genomes(genomes, config):
                 firstish_frame = False
             if not landed[x] and lander.height < 200:
                 if lander.delta_vert < -2:
-                    ge[x].fitness -= 1
+                    ge[x].fitness -= 0.2
+            if lander.height < 200 and lander.delta_horiz < -1 or lander.delta_horiz > 1:
+                ge[x].fitness -= 0.2
 
             if not landed[x] and not lander.is_fuel_remaining():
-                ge[x].fitness -= 1
+                ge[x].fitness -= 0.2
             if landed[x] and landed_ok[x] is not True:
                 # print("Checking land quality")
                 landed_ok[x] = status
                 # print(landed_ok[x])
             if landed_ok[x]:
-                ge[x].fitness += 10
+                ge[x].fitness += 50
                 #win.fill(0, 255, 0)
+            lander.render()
             if not landed[x] and lander.is_fuel_remaining() and thrust:
                 burner = Burn(lander)
                 burners.append(burner)
@@ -285,7 +307,10 @@ def eval_genomes(genomes, config):
 
 
 
-        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness, burn_group, fuel_bar_back_group, fuel_bar_front_group,percent_fuel)
+
+
+        draw_window(WIN, landers, planet, score, gen, planet_group, lander_group, landedwell, top_fitness, burn_group, fuel_bar_back_group, fuel_bar_front_group,scoreboardgroup, lowest_fitness)
+    successful_landings.append(landedwell)
     print("Number that landed: ", landedwell)
 
 
